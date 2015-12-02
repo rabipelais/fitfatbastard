@@ -51,7 +51,7 @@
           lst)
      (join "\n")))
 
-(def listing (atom {}))
+(def listing (atom (sorted-map)))
 
 (defn update-ui [activity]
   (set-elmt activity ::listing (format-listing @listing))
