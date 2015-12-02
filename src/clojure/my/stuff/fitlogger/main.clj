@@ -42,26 +42,32 @@
           events)
    (join "                        ")))
 
-(defn format-listing [lst]
-  (->> (map (fn [[date events]]
-            (format "%s - %s" date (format-events events)))
-          lst)
-     join))
+;; (defn format-listing [lst]
+;;   (->> (map (fn [[date events]]
+;;             (format "%s - %s" date (format-events events)))
+;;           lst)
+;;      join))
 
-(def listing (atom (sorted-map)))
+(defn format-listing [lst] lst)
+
+(def listing (atom {}))
 
 (defn update-ui [activity]
   (set-elmt activity ::listing (format-listing @listing))
-  (set-elmt activity ::location "")
-  (set-elmt activity ::name ""))
+  (set-elmt activity ::weight "")
+  (set-elmt activity ::bf "")
+  (set-elmt activity ::water "")
+  (set-elmt activity ::muscle ""))
 
 (defn add-event [activity]
   (let [date-key (try
                    (read-string (get-elmt activity ::date))
                    (catch RuntimeException e "Date string is empty!"))]
     (when (number? date-key)
-      (swap! listing update-in [date-key] (fnil conj [])
-             [(get-elmt activity ::location) (get-elmt activity ::name)])
+      (swap! listing
+             #(reduce (fn [l k] (assoc-in l [date-key k] (get-elmt activity k)))
+                      %
+                      [::date ::weight ::bf ::water ::muscle]))
       (update-ui activity))))
 
 (defn date-picker [activity]
@@ -81,17 +87,20 @@
 
 (defn main-layout [activity]
   [:linear-layout {:orientation :vertical}
-   [:edit-text {:hint "Event name",
-                :id ::name}]
-   [:edit-text {:hint "Event location",
-                :id ::location}]
    [:linear-layout {:orientation :horizontal}
-    [:text-view {:hint "Event date",
-                 :id ::date}]
-    [:button {:text "...",
+    [:button {:text "Date",
+              :id ::date,
               :on-click (fn [_] (show-picker activity
-                                            (date-picker activity)))}]]
-   [:button {:text "+ Event",
+                                            (date-picker activity)))}]
+    [:edit-text {:hint "Weight",
+                 :id ::weight}]
+    [:edit-text {:hint "BF%",
+                 :id ::bf}]
+    [:edit-text {:hint "H2O%",
+                 :id ::water}]
+    [:edit-text {:hint "M%",
+                 :id ::muscle}]]
+   [:button {:text "Add log",
              :on-click (fn [_]
                          (add-event activity))}]
    [:text-view {:text (format-listing @listing),
@@ -100,7 +109,7 @@
 ;; This is how an Activity is defined. We create one and specify its onCreate
 ;; method. Inside we create a user interface that consists of an edit and a
 ;; button. We also give set callback to the button.
-(defactivity my.stuff.events.MainActivity
+(defactivity my.stuff.fitlogger.MainActivity
   :key :main
 
   (onCreate [this bundle]
