@@ -10,7 +10,8 @@
   <application
       android:name="neko.App"
       android:icon="@drawable/ic_launcher"
-      android:label="FitLogger">
+      android:label="FitLogger"
+	  android:theme="@android:style/Theme.Material">
     <activity android:name=".SplashActivity"
               android:theme="@android:style/Theme.Translucent.NoTitleBar">
       <intent-filter>
