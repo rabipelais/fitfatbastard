@@ -35,20 +35,21 @@
 (defn set-elmt [activity elmt s]
   (on-ui (config (find-view activity elmt) :text s)))
 
-(defn format-events [events]
+(defn trim-keyword [k]
+  (apply str (rest (drop-while #(not= % \/) (str k)))))
+
+(defn format-measurements [m]
   (->>
-   (map (fn [[location event]]
-            (format "%s - %s\n" location event))
-          events)
-   (join "                        ")))
+   (map (fn [[k v]]
+            (format "%s: %s" (trim-keyword k) v))
+          m)
+   (join ", ")))
 
-;; (defn format-listing [lst]
-;;   (->> (map (fn [[date events]]
-;;             (format "%s - %s" date (format-events events)))
-;;           lst)
-;;      join))
-
-(defn format-listing [lst] lst)
+(defn format-listing [lst]
+  (->> (map (fn [[_ measurements]]
+            (format "%s" (format-measurements measurements)))
+          lst)
+     (join "\n")))
 
 (def listing (atom {}))
 
@@ -65,7 +66,7 @@
                    (catch RuntimeException e "Date string is empty!"))]
     (when (number? date-key)
       (swap! listing
-             #(reduce (fn [l k] (assoc-in l [date-key k] (get-elmt activity k)))
+             #(reduce (fn [l k] (assoc-in l [date-key k] (read-string (get-elmt activity k))))
                       %
                       [::date ::weight ::bf ::water ::muscle]))
       (update-ui activity))))
