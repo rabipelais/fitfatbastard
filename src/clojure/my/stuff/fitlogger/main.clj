@@ -6,9 +6,11 @@
               [neko.find-view :refer [find-view]]
               [neko.threading :refer [on-ui]]
               [neko.ui :refer [config]]
-              [clojure.string :refer [join]])
+              [clojure.string :refer [join]]
+              [clojure.java.io :as io])
     (:import (android.widget EditText TextView)
              (java.util Calendar)
+             (java.io File)
              (android.app Activity)
              (android.app DatePickerDialog DatePickerDialog$OnDateSetListener)
              (android.app DialogFragment)))
@@ -86,6 +88,20 @@
 (defn show-picker [^Activity activity dp]
   (. dp show (. activity getFragmentManager) "datePicker"))
 
+(def logfile "test.csv")
+
+(defn write-file [activity t]
+  (let [file (File. (.getFilesDir activity) logfile)]
+    (do (when (not (.exists file))
+          (.createNewFile file))
+        (with-open [wrt (io/writer file)]
+          (.write wrt t)))))
+
+(defn read-file [activity]
+  (let [file (File. (.getFilesDir activity) logfile)]
+    (when (.exists file)
+      (set-elmt activity ::test  (slurp file)))))
+
 (defn main-layout [activity]
   [:linear-layout {:orientation :vertical}
    [:linear-layout {:orientation :horizontal}
@@ -104,6 +120,13 @@
    [:button {:text "Add log",
              :on-click (fn [_]
                          (add-event activity))}]
+   [:button {:text "Write file",
+             :on-click (fn [_]
+                         (write-file activity "arst"))}]
+   [:button {:text "Read file",
+             :on-click (fn [_]
+                         (read-file activity))}]
+   [:text-view {:id ::test}]
    [:text-view {:text (format-listing @listing),
                 :id ::listing}]])
 
