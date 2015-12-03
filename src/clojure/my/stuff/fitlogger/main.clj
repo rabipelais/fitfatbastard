@@ -6,7 +6,7 @@
               [neko.find-view :refer [find-view]]
               [neko.threading :refer [on-ui]]
               [neko.ui :refer [config]]
-              [clojure.string :refer [join]]
+              [clojure.string :refer [join split-lines split]]
               [clojure.java.io :as io])
     (:import (android.widget EditText TextView)
              (java.util Calendar)
@@ -64,6 +64,19 @@
             (format "%s" (measurement->csv measurements)))
           lst)
      (join "\n")))
+
+(defn csv-list->entry [l entry]
+  (let [date-key (read-string (entry 0))
+        pairs (map #(identity [%1 %2])
+                   [::date ::weight ::bf ::water ::muscle] entry)]
+    (reduce (fn [l [k v]] (assoc-in l [date-key k] (read-string v)))
+            l
+            pairs)))
+
+(defn csv->listing [entries]
+  (reduce (fn [l e] (csv-list->entry l (split e #",")))
+          (sorted-map)
+          entries))
 
 (def listing (atom (sorted-map)))
 
