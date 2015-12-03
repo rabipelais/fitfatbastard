@@ -74,6 +74,22 @@
   (set-elmt activity ::water "")
   (set-elmt activity ::muscle ""))
 
+
+(def logfile "test.csv")
+
+(defn write-logfile [activity t]
+  (let [file (File. (.getFilesDir activity) logfile)]
+    (do (when (not (.exists file))
+          (.createNewFile file))
+        (with-open [wrt (io/writer file)]
+          (.write wrt t)))))
+
+(defn read-logfile [activity]
+  (let [file (File. (.getFilesDir activity) logfile)]
+    (when (.exists file)
+      (with-open [rdr (io/reader file)]
+        (slurp rdr)))))
+
 (defn add-event [activity]
   (let [date-key (try
                    (read-string (get-elmt activity ::date))
@@ -83,6 +99,7 @@
              #(reduce (fn [l k] (assoc-in l [date-key k] (read-string (get-elmt activity k))))
                       %
                       [::date ::weight ::bf ::water ::muscle]))
+      (write-logfile activity (listing->csv @listing))
       (update-ui activity))))
 
 (defn date-picker [activity]
@@ -100,19 +117,6 @@
 (defn show-picker [^Activity activity dp]
   (. dp show (. activity getFragmentManager) "datePicker"))
 
-(def logfile "test.csv")
-
-(defn write-file [activity t]
-  (let [file (File. (.getFilesDir activity) logfile)]
-    (do (when (not (.exists file))
-          (.createNewFile file))
-        (with-open [wrt (io/writer file)]
-          (.write wrt t)))))
-
-(defn read-file [activity]
-  (let [file (File. (.getFilesDir activity) logfile)]
-    (when (.exists file)
-      (set-elmt activity ::test  (slurp file)))))
 
 (defn main-layout [activity]
   [:linear-layout {:orientation :vertical}
