@@ -161,6 +161,7 @@
   (onCreate [this bundle]
     (.superOnCreate this bundle)
     (neko.debug/keep-screen-on this)
+    (reset! listing (csv->listing (split-lines (read-logfile (*a)))))
     (on-ui
      (set-content-view! (*a) (main-layout (*a)))
      (set-elmt (*a) ::listing (format-listing @listing)))))
