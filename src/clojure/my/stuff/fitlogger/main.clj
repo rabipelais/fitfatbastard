@@ -53,6 +53,18 @@
           lst)
      (join "\n")))
 
+(defn measurement->csv [m]
+  (->> (map (fn [[k v]]
+            (format "%s" v))
+          m)
+     (join ", ")))
+
+(defn listing->csv [lst]
+  (->> (map (fn [[_ measurements]]
+            (format "%s" (measurement->csv measurements)))
+          lst)
+     (join "\n")))
+
 (def listing (atom (sorted-map)))
 
 (defn update-ui [activity]
@@ -120,13 +132,6 @@
    [:button {:text "Add log",
              :on-click (fn [_]
                          (add-event activity))}]
-   [:button {:text "Write file",
-             :on-click (fn [_]
-                         (write-file activity "arst"))}]
-   [:button {:text "Read file",
-             :on-click (fn [_]
-                         (read-file activity))}]
-   [:text-view {:id ::test}]
    [:text-view {:text (format-listing @listing),
                 :id ::listing}]])
 
