@@ -115,13 +115,13 @@
 
 (defn add-event [activity]
   (let [date-key (try
-                   (read-string (get-elmt activity ::date))
+                   (read-string (get-elmt activity :date))
                    (catch RuntimeException e "Date string is empty!"))]
     (when (number? date-key)
       (swap! listing
              #(reduce (fn [l k] (assoc-in l [date-key k] (read-string (get-elmt activity k))))
                       %
-                      [::date ::weight ::bf ::water ::muscle]))
+                      [:date :weight :bf :water :muscle]))
       (write-logfile activity (listing->csv @listing))
       (update-ui activity))))
 
@@ -134,7 +134,7 @@
             day (.get c Calendar/DAY_OF_MONTH)]
         (DatePickerDialog. activity this year month day)))
     (onDateSet [view year month day]
-      (set-elmt activity ::date
+      (set-elmt activity :date
                 (format "%d%02d%02d" year (inc month) day)))))
 
 (defn show-picker [^Activity activity dp]

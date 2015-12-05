@@ -21,7 +21,7 @@
                :target-path "target/debug"
                :android {:aot :all-with-unused
                          :rename-manifest-package "my.stuff.fitlogger.debug"
-                         :manifest-options {:app-name "FitLogger (debug)"}}}]
+                         :manifest-options {:app-name "Fat Fit Bastard (debug)"}}}]
              :release
              [:android-common
               {:target-path "target/release"
