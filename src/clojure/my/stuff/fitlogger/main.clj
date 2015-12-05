@@ -7,13 +7,15 @@
               [neko.threading :refer [on-ui]]
               [neko.ui :refer [config]]
               [clojure.string :refer [join split-lines split]]
-              [clojure.java.io :as io])
+              [clojure.java.io :as io]
+              [my.stuff.fitlogger.sebas :as seb])
     (:import (android.widget EditText TextView)
              (java.util Calendar)
              (java.io File)
              (android.app Activity)
              (android.app DatePickerDialog DatePickerDialog$OnDateSetListener)
-             (android.app DialogFragment)))
+             (android.app DialogFragment)
+             (android.content.res AssetManager)))
 
 ;; We execute this function to import all subclasses of R class. This gives us
 ;; access to all application resources.
@@ -38,7 +40,10 @@
   (on-ui (config (find-view activity elmt) :text s)))
 
 (defn trim-keyword [k]
-  (apply str (rest (drop-while #(not= % \/) (str k)))))
+  (let [trimmed (apply str (rest (drop-while #(not= % \/) (str k))))]
+    (if (empty? trimmed)
+      (str k)
+      trimmed)))
 
 (defn format-measurements [m]
   (->>
@@ -68,7 +73,7 @@
 (defn csv-list->entry [l entry]
   (let [date-key (read-string (entry 0))
         pairs (map #(identity [%1 %2])
-                   [::date ::weight ::bf ::water ::muscle] entry)]
+                   [:date :weight :bf :water :muscle] entry)]
     (reduce (fn [l [k v]] (assoc-in l [date-key k] (read-string v)))
             l
             pairs)))
@@ -81,14 +86,14 @@
 (def listing (atom (sorted-map)))
 
 (defn update-ui [activity]
-  (set-elmt activity ::listing (format-listing @listing))
-  (set-elmt activity ::weight "")
-  (set-elmt activity ::bf "")
-  (set-elmt activity ::water "")
-  (set-elmt activity ::muscle ""))
+  (set-elmt activity :listing (format-listing @listing))
+  (set-elmt activity :weight "")
+  (set-elmt activity :bf "")
+  (set-elmt activity :water "")
+  (set-elmt activity :muscle ""))
 
 
-(def logfile "test.csv")
+(def logfile "log.csv")
 
 (defn write-logfile [activity t]
   (let [file (File. (.getFilesDir activity) logfile)]
@@ -102,6 +107,11 @@
     (when (.exists file)
       (with-open [rdr (io/reader file)]
         (slurp rdr)))))
+
+(defn read-logfile-or-default [activity]
+  (if-let [log (read-logfile activity)]
+    (csv->listing (split-lines log))
+    seb/sebas-default))
 
 (defn add-event [activity]
   (let [date-key (try
@@ -135,22 +145,22 @@
   [:linear-layout {:orientation :vertical}
    [:linear-layout {:orientation :horizontal}
     [:button {:text "Date",
-              :id ::date,
+              :id :date,
               :on-click (fn [_] (show-picker activity
                                             (date-picker activity)))}]
     [:edit-text {:hint "Weight",
-                 :id ::weight}]
+                 :id :weight}]
     [:edit-text {:hint "BF%",
-                 :id ::bf}]
+                 :id :bf}]
     [:edit-text {:hint "H2O%",
-                 :id ::water}]
+                 :id :water}]
     [:edit-text {:hint "M%",
-                 :id ::muscle}]]
+                 :id :muscle}]]
    [:button {:text "Add log",
              :on-click (fn [_]
                          (add-event activity))}]
    [:text-view {:text (format-listing @listing),
-                :id ::listing}]])
+                :id :listing}]])
 
 ;; This is how an Activity is defined. We create one and specify its onCreate
 ;; method. Inside we create a user interface that consists of an edit and a
@@ -161,7 +171,7 @@
   (onCreate [this bundle]
     (.superOnCreate this bundle)
     (neko.debug/keep-screen-on this)
-    (reset! listing (csv->listing (split-lines (read-logfile (*a)))))
+    (reset! listing (read-logfile-or-default (*a)))
     (on-ui
      (set-content-view! (*a) (main-layout (*a)))
-     (set-elmt (*a) ::listing (format-listing @listing)))))
+     (set-elmt (*a) :listing (format-listing @listing)))))

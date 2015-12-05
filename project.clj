@@ -42,6 +42,8 @@
             ;; available RAM.
             :dex-opts ["-JXmx4096M" "--incremental"]
 
+            :assets-paths ["./assets"]
+
             :target-version "21"
             :aot-exclude-ns ["clojure.parallel" "clojure.core.reducers"
                              "cider.nrepl" "cider-nrepl.plugin"
