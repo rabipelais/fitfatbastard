@@ -90,7 +90,7 @@
           (sorted-map)
           entries))
 
-(def listing (atom (sorted-map)))
+(def listing (atom (sorted-map-by >)))
 
 (defn update-ui [activity]
 ;  (set-elmt activity :listing (format-listing @listing))
@@ -100,7 +100,7 @@
   (set-elmt activity :muscle ""))
 
 
-(def logfile "log.csv")
+(def logfile "log3.csv")
 
 (defn write-logfile [activity t]
   (let [file (File. (.getFilesDir activity) logfile)]

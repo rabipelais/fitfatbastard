@@ -1,6 +1,6 @@
 (ns my.stuff.fitlogger.sebas)
 
-(def sebas-default (into (sorted-map)
+(def sebas-default (into (sorted-map-by >)
                     {20151007 {:date 20151007,:weight 99.0,:bf 13.3,:water 63.5,:muscle 43.3}
                      20151008 {:date 20151008,:weight 99.5,:bf 13.3,:water 63.5,:muscle 43.2}
                      20151009 {:date 20151009,:weight 100.3,:bf 13.7,:water 63.2,:muscle 43.1}
