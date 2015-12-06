@@ -175,7 +175,8 @@
    [:button {:text "Add log",
              :on-click (fn [_]
                          (add-event activity))}]
-   (format-listing @listing)])
+   [:scroll-view {}
+    (format-listing @listing)]])
 
 ;; This is how an Activity is defined. We create one and specify its onCreate
 ;; method. Inside we create a user interface that consists of an edit and a
