@@ -6,6 +6,7 @@
               [neko.find-view :refer [find-view]]
               [neko.threading :refer [on-ui]]
               [neko.ui :refer [config]]
+              [neko.ui.mapping :refer [defelement]]
               [clojure.string :refer [join split-lines split]]
               [clojure.java.io :as io]
               [my.stuff.fitlogger.sebas :as seb])
@@ -45,18 +46,24 @@
       (str k)
       trimmed)))
 
+(defelement :table-layout
+  :classname android.widget.TableLayout
+  :inherits :linear-layout)
+(defelement :table-row
+  :classname android.widget.TableRow
+  :inherits :linear-layout)
+
 (defn format-measurements [m]
-  (->>
-   (map (fn [[k v]]
-            (format "%s: %s" (trim-keyword k) v))
-          m)
-   (join ", ")))
+  (apply conj [:table-row {}]
+         (map (fn [[_ v]]
+                [:text-view {:text (format "%s" v), :padding 20}])
+              m)))
 
 (defn format-listing [lst]
-  (->> (map (fn [[_ measurements]]
-            (format "%s" (format-measurements measurements)))
-          lst)
-     (join "\n")))
+  (apply conj [:table-layout {}]
+         (map (fn [[_ measurements]]
+                (format-measurements measurements))
+              lst)))
 
 (defn measurement->csv [m]
   (->> (map (fn [[k v]]
@@ -86,7 +93,7 @@
 (def listing (atom (sorted-map)))
 
 (defn update-ui [activity]
-  (set-elmt activity :listing (format-listing @listing))
+;  (set-elmt activity :listing (format-listing @listing))
   (set-elmt activity :weight "")
   (set-elmt activity :bf "")
   (set-elmt activity :water "")
@@ -140,7 +147,6 @@
 (defn show-picker [^Activity activity dp]
   (. dp show (. activity getFragmentManager) "datePicker"))
 
-
 (defn main-layout [activity]
   [:linear-layout {:orientation :vertical}
    [:linear-layout {:orientation :horizontal}
@@ -159,8 +165,7 @@
    [:button {:text "Add log",
              :on-click (fn [_]
                          (add-event activity))}]
-   [:text-view {:text (format-listing @listing),
-                :id :listing}]])
+   (format-listing @listing)])
 
 ;; This is how an Activity is defined. We create one and specify its onCreate
 ;; method. Inside we create a user interface that consists of an edit and a
@@ -173,5 +178,4 @@
     (neko.debug/keep-screen-on this)
     (reset! listing (read-logfile-or-default (*a)))
     (on-ui
-     (set-content-view! (*a) (main-layout (*a)))
-     (set-elmt (*a) :listing (format-listing @listing)))))
+     (set-content-view! (*a) (main-layout (*a))))))
