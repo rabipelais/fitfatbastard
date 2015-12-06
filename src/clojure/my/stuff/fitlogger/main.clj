@@ -5,12 +5,13 @@
               [neko.resource :as res]
               [neko.find-view :refer [find-view]]
               [neko.threading :refer [on-ui]]
-              [neko.ui :refer [config]]
+              [neko.ui :refer [config make-ui]]
               [neko.ui.mapping :refer [defelement]]
               [clojure.string :refer [join split-lines split]]
               [clojure.java.io :as io]
               [my.stuff.fitlogger.sebas :as seb])
     (:import (android.widget EditText TextView)
+             (android.view ViewGroup)
              (java.util Calendar)
              (java.io File)
              (android.app Activity)
@@ -60,7 +61,7 @@
               m)))
 
 (defn format-listing [lst]
-  (apply conj [:table-layout {}]
+  (apply conj [:table-layout {:id :table}]
          (map (fn [[_ measurements]]
                 (format-measurements measurements))
               lst)))
@@ -87,20 +88,29 @@
 
 (defn csv->listing [entries]
   (reduce (fn [l e] (csv-list->entry l (split e #",")))
-          (sorted-map)
+          (sorted-map-by >)
           entries))
 
 (def listing (atom (sorted-map-by >)))
 
-(defn update-ui [activity]
-;  (set-elmt activity :listing (format-listing @listing))
+(defn index-of-key [key map]
+  (count (take-while #(not= key %) (keys map))))
+
+(defn update-table [activity key m]
+  (let [idx (index-of-key key m)
+        row (format-measurements (m key))]
+    (on-ui (.addView (find-view activity :table) (make-ui (*a) row) idx))
+    row))
+
+(defn update-ui [activity date-key]
+  (update-table activity date-key @listing)
   (set-elmt activity :weight "")
   (set-elmt activity :bf "")
   (set-elmt activity :water "")
   (set-elmt activity :muscle ""))
 
 
-(def logfile "log3.csv")
+(def logfile "log5.csv")
 
 (defn write-logfile [activity t]
   (let [file (File. (.getFilesDir activity) logfile)]
@@ -130,7 +140,7 @@
                       %
                       [:date :weight :bf :water :muscle]))
       (write-logfile activity (listing->csv @listing))
-      (update-ui activity))))
+      (update-ui activity date-key))))
 
 (defn date-picker [activity]
   (proxy [DialogFragment DatePickerDialog$OnDateSetListener] []
