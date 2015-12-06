@@ -57,11 +57,14 @@
 (defn format-measurements [m]
   (apply conj [:table-row {}]
          (map (fn [[_ v]]
-                [:text-view {:text (format "%s" v), :padding 20}])
+                [:text-view {:text (format "%s" v)}])
               m)))
 
 (defn format-listing [lst]
-  (apply conj [:table-layout {:id :table}]
+  (apply conj [:table-layout {:id :table,
+                              :layout-width :fill,
+                              :layout-weight 1
+                              :stretch-all-columns true}]
          (map (fn [[_ measurements]]
                 (format-measurements measurements))
               lst)))
@@ -175,7 +178,8 @@
    [:button {:text "Add log",
              :on-click (fn [_]
                          (add-event activity))}]
-   [:scroll-view {}
+   [:scroll-view {:layout-width :fill,
+                  :layout-weight 1}
     (format-listing @listing)]])
 
 ;; This is how an Activity is defined. We create one and specify its onCreate
