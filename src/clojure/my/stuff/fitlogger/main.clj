@@ -64,7 +64,13 @@
   (apply conj [:table-layout {:id :table,
                               :layout-width :fill,
                               :layout-weight 1
-                              :stretch-all-columns true}]
+                              :stretch-all-columns true}
+               [:table-row {}
+                [:text-view {:text "Date"}]
+                [:text-view {:text "Weight"}]
+                [:text-view {:text "BF%"}]
+                [:text-view {:text "Water%"}]
+                [:text-view {:text "Muscle%"}]]]
          (map (fn [[_ measurements]]
                 (format-measurements measurements))
               lst)))
@@ -102,7 +108,8 @@
 (defn update-table [activity key m]
   (let [idx (index-of-key key m)
         row (format-measurements (m key))]
-    (on-ui (.addView (find-view activity :table) (make-ui (*a) row) idx))
+    ;Increase idx so that we don't overwrite the header of the table.
+    (on-ui (.addView (find-view activity :table) (make-ui (*a) row) (inc idx)))
     row))
 
 (defn update-ui [activity date-key]
