@@ -169,22 +169,12 @@
       (set-elmt activity :date
                 (format "%d%02d%02d" year (inc month) day)))))
 
-(defn pager-adapter [activity]
-  (proxy [PagerAdapter] []
-    (getCount [] 2)
-    (isViewFromObject [v o] (= v o))
-    (instantiateItem [coll, pos]
-      (let [tv (TextView. activity)]
-        (do (.setText tv (str pos))
-            (.addView coll tv 0)
-            tv)))))
 
 (defn show-picker [^Activity activity dp]
   (. dp show (. activity getFragmentManager) "datePicker"))
 
 (defn viewpager-layout [activity]
   [:linear-layout {:orientation :vertical}
-   [:edit-text {:hint "BLUB"}]
    [:view-pager {:id :awesomepager}]])
 
 (defn input-layout [activity]
@@ -208,6 +198,21 @@
    [:scroll-view {:layout-width :fill,
                   :layout-weight 1}
     (format-listing @listing)]])
+
+
+(defn pager-adapter [activity]
+  (proxy [PagerAdapter] []
+    (getCount [] 2)
+    (isViewFromObject [v o] (= v o))
+    (instantiateItem [coll, pos]
+      (if (= pos 0)
+        (let [layout (make-ui activity (input-layout activity))]
+          (do (.addView coll layout 0)
+              layout))
+        (let [tv (TextView. activity)]
+          (do (.setText tv (str pos))
+              (.addView coll tv 0)
+              tv))))))
 
 ;; This is how an Activity is defined. We create one and specify its onCreate
 ;; method. Inside we create a user interface that consists of an edit and a
