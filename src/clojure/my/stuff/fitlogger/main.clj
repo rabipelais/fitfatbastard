@@ -12,12 +12,14 @@
               [my.stuff.fitlogger.sebas :as seb])
     (:import (android.widget EditText TextView)
              (android.view ViewGroup)
+             (android.support.v4.view ViewPager PagerAdapter)
              (java.util Calendar)
              (java.io File)
              (android.app Activity)
              (android.app DatePickerDialog DatePickerDialog$OnDateSetListener)
              (android.app DialogFragment)
-             (android.content.res AssetManager)))
+             (android.content.res AssetManager)
+             (android.graphics.Color)))
 
 ;; We execute this function to import all subclasses of R class. This gives us
 ;; access to all application resources.
@@ -53,6 +55,9 @@
 (defelement :table-row
   :classname android.widget.TableRow
   :inherits :linear-layout)
+(defelement :view-pager
+  :classname android.support.v4.view.ViewPager
+  :inherits :view-group)
 
 (defn format-measurements [m]
   (apply conj [:table-row {}]
@@ -164,10 +169,25 @@
       (set-elmt activity :date
                 (format "%d%02d%02d" year (inc month) day)))))
 
+(defn pager-adapter [activity]
+  (proxy [PagerAdapter] []
+    (getCount [] 2)
+    (isViewFromObject [v o] (= v o))
+    (instantiateItem [coll, pos]
+      (let [tv (TextView. activity)]
+        (do (.setText tv (str pos))
+            (.addView coll tv 0)
+            tv)))))
+
 (defn show-picker [^Activity activity dp]
   (. dp show (. activity getFragmentManager) "datePicker"))
 
-(defn main-layout [activity]
+(defn viewpager-layout [activity]
+  [:linear-layout {:orientation :vertical}
+   [:edit-text {:hint "BLUB"}]
+   [:view-pager {:id :awesomepager}]])
+
+(defn input-layout [activity]
   [:linear-layout {:orientation :vertical}
    [:linear-layout {:orientation :horizontal}
     [:button {:text "Date",
@@ -200,4 +220,5 @@
     (neko.debug/keep-screen-on this)
     (reset! listing (read-logfile-or-default (*a)))
     (on-ui
-     (set-content-view! (*a) (main-layout (*a))))))
+     (set-content-view! (*a) (viewpager-layout (*a))))
+    (.setAdapter (find-view (*a) :awesomepager) (pager-adapter (*a)))))
