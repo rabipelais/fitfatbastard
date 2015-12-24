@@ -10,7 +10,7 @@
               [clojure.string :refer [join split-lines split]]
               [clojure.java.io :as io]
               [my.stuff.fitlogger.sebas :as seb])
-    (:import (android.widget EditText TextView)
+    (:import (android.widget EditText TextView CheckBox)
              (android.view ViewGroup)
              (android.support.v4.view ViewPager PagerAdapter)
              (java.util Calendar)
@@ -19,7 +19,8 @@
              (android.app DatePickerDialog DatePickerDialog$OnDateSetListener)
              (android.app DialogFragment)
              (android.content.res AssetManager)
-             (android.graphics.Color)))
+             (android.graphics.Color)
+             (com.jjoe64.graphview GraphView)))
 
 ;; We execute this function to import all subclasses of R class. This gives us
 ;; access to all application resources.
@@ -58,6 +59,12 @@
 (defelement :view-pager
   :classname android.support.v4.view.ViewPager
   :inherits :view-group)
+(defelement :graphview
+  :classname com.jjoe64.graphview.GraphView
+  :inherits :view)
+(defelement :checkbox
+  :classname android.widget.CheckBox
+  :inherits :button)
 
 (defn format-measurements [m]
   (apply conj [:table-row {}]
@@ -199,6 +206,16 @@
                   :layout-weight 1}
     (format-listing @listing)]])
 
+(defn graph-layout [activity]
+  [:linear-layout {:orientation :vertical}
+   [:graphview {:layout-width :fill,
+                :layout-height 700}]
+   [:linear-layout {:orientation :horizontal}
+    [:checkbox {:text "Total Weight"}]]
+   [:linear-layout {:orientation :horizontal}
+    [:checkbox {:text "BF%"}]
+    [:checkbox {:text "Total BF"}]]])
+
 
 (defn pager-adapter [activity]
   (proxy [PagerAdapter] []
@@ -209,10 +226,9 @@
         (let [layout (make-ui activity (input-layout activity))]
           (do (.addView coll layout 0)
               layout))
-        (let [tv (TextView. activity)]
-          (do (.setText tv (str pos))
-              (.addView coll tv 0)
-              tv))))))
+        (let [layout (make-ui activity (graph-layout activity))]
+          (do (.addView coll layout 0)
+              layout))))))
 
 ;; This is how an Activity is defined. We create one and specify its onCreate
 ;; method. Inside we create a user interface that consists of an edit and a
