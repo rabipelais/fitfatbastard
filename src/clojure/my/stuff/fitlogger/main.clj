@@ -209,12 +209,18 @@
 (defn graph-layout [activity]
   [:linear-layout {:orientation :vertical}
    [:graphview {:layout-width :fill,
-                :layout-height 700}]
+                :layout-height 1000}]
    [:linear-layout {:orientation :horizontal}
     [:checkbox {:text "Total Weight"}]]
    [:linear-layout {:orientation :horizontal}
     [:checkbox {:text "BF%"}]
-    [:checkbox {:text "Total BF"}]]])
+    [:checkbox {:text "Total BF"}]]
+   [:linear-layout {:orientation :horizontal}
+    [:checkbox {:text "H2O%"}]
+    [:checkbox {:text "Total H2O"}]]
+   [:linear-layout {:orientation :horizontal}
+    [:checkbox {:text "Muscle%"}]
+    [:checkbox {:text "Total Muscle"}]]])
 
 
 (defn pager-adapter [activity]
