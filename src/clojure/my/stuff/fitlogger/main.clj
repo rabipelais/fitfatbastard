@@ -15,16 +15,20 @@
              (android.support.v4.view ViewPager PagerAdapter)
              (java.util Calendar)
              (java.io File)
+             (java.text SimpleDateFormat)
              (android.app Activity)
              (android.app DatePickerDialog DatePickerDialog$OnDateSetListener)
              (android.app DialogFragment)
              (android.content.res AssetManager)
              (android.graphics.Color)
-             (com.jjoe64.graphview GraphView)))
+             (com.jjoe64.graphview GraphView)
+             (com.jjoe64.graphview.series DataPoint LineGraphSeries)))
 
 ;; We execute this function to import all subclasses of R class. This gives us
 ;; access to all application resources.
 (res/import-all)
+
+(def date-formatter (SimpleDateFormat. "yyyyMMdd"))
 
 (defn notify-from-edit
   "Finds an EditText element with ID ::user-input in the given activity. Gets
@@ -206,21 +210,38 @@
                   :layout-weight 1}
     (format-listing @listing)]])
 
+(defn into-graph [datapoints]
+  (.addSeries (find-view (*a) :graph) (LineGraphSeries.  (into-array datapoints))))
+
+(defn add-line [tag & {:keys [total]}]
+  (if (= tag :weight)
+    (into-graph (map (fn [[date {w :weight}]]
+                       (DataPoint. (.parse date-formatter (str date)) (double w))) @listing))
+    (if total true false)))
+
 (defn graph-layout [activity]
   [:linear-layout {:orientation :vertical}
    [:graphview {:layout-width :fill,
-                :layout-height 1000}]
+                :layout-height 1000,
+                :id :graph}]
    [:linear-layout {:orientation :horizontal}
-    [:checkbox {:text "Total Weight"}]]
+    [:checkbox {:text "Total Weight",
+                :on-click (fn [_] (add-line :weight))}]]
    [:linear-layout {:orientation :horizontal}
-    [:checkbox {:text "BF%"}]
-    [:checkbox {:text "Total BF"}]]
+    [:checkbox {:text "BF%",
+                :on-click (fn [_] (add-line :bf))}]
+    [:checkbox {:text "Total BF",
+                :on-click (fn [_] (add-line :bf :total true))}]]
    [:linear-layout {:orientation :horizontal}
-    [:checkbox {:text "H2O%"}]
-    [:checkbox {:text "Total H2O"}]]
+    [:checkbox {:text "H2O%",
+                :on-click (fn [_] (add-line :water))}]
+    [:checkbox {:text "Total H2O",
+                :on-click (fn [_] (add-line :water :total true))}]]
    [:linear-layout {:orientation :horizontal}
-    [:checkbox {:text "Muscle%"}]
-    [:checkbox {:text "Total Muscle"}]]])
+    [:checkbox {:text "Muscle%",
+                :on-click (fn [_] (add-line :muscle))}]
+    [:checkbox {:text "Total Muscle",
+                :on-click (fn [_] (add-line :muscle :total true))}]]])
 
 
 (defn pager-adapter [activity]
